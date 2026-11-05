@@ -1,0 +1,131 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import ReportModal from '../components/ReportModal.astro';
+import ReportDetail from '../components/ReportDetail.astro';
+import '../styles/dashboard.css';
+const categories = [
+  { value: 'Documentos', icon: 'document' },
+  { value: 'Electrónica', icon: 'phone' },
+  { value: 'Ropa', icon: 'shirt' },
+  { value: 'Otros', icon: 'box' },
+];
+---
+<Layout title="Explorar · LostNet">
+<main class="lostnet-dashboard" data-panel-expanded="true" data-connection="loading" data-selecting="false">
+  <a class="skip-link" href="#tab-explore">Ir a los reportes</a>
+  <div id="map" aria-label="Mapa de objetos perdidos y puntos seguros"></div>
+  <header class="map-header">
+    <a class="brand" href="/dashboard" aria-label="LostNet, inicio">
+      <span class="brand-mark"><img src="/favicon.jpg" alt="" width="36" height="36" /></span>
+      <span class="brand-type">Lost<span>Net</span></span>
+    </a>
+    <div class="search-bar" role="search">
+      <Icon name="search" size={21} />
+      <label class="sr-only" for="search-input">Buscar objetos perdidos</label>
+      <input id="search-input" type="search" placeholder="¿Qué estás buscando?" autocomplete="off" />
+    </div>
+    <div class="account-actions">
+      <button id="btn-notifications-sidebar" class="icon-button alert-button" title="Alertas cercanas" aria-label="Abrir alertas cercanas" aria-controls="notifications-menu" aria-expanded="false">
+        <Icon name="bell" size={22} /><span id="badge-notifications" class="notification-dot hidden"></span>
+      </button>
+      <button id="btn-profile" class="account-avatar" aria-label="Abrir mi perfil" aria-controls="panel-you">
+        <span id="account-initials">Tú</span><img id="account-photo" alt="" hidden referrerpolicy="no-referrer" />
+      </button>
+    </div>
+  </header>
+  <div class="category-strip" role="group" aria-label="Filtrar por categoría">
+    <button id="filter-all" class="category-all" aria-pressed="true"><Icon name="layers" size={17} />Todos</button>
+    {categories.map(({ value, icon }) => (
+      <label class="category-chip">
+        <input class="filter-cat sr-only" type="checkbox" value={value} />
+        <span><Icon name={icon} size={17} />{value}</span>
+      </label>
+    ))}
+  </div>
+  <div id="selection-hint" class="selection-hint" role="status" hidden>
+    <Icon name="pin" /><span>Elige en el mapa dónde ocurrió.</span>
+    <button id="btn-cancel-selection" aria-label="Cancelar selección de ubicación"><Icon name="close" size={18} /></button>
+  </div>
+  <aside id="sidebar-menu" class="explore-sheet" aria-label="Panel de LostNet">
+    <button id="btn-sheet-toggle" class="sheet-handle" aria-expanded="true" aria-controls="sheet-content" aria-label="Contraer panel"><span></span></button>
+    <div class="sheet-heading">
+      <div class="sheet-location"><h1 id="sheet-title">Explorar</h1></div>
+      <button id="btn-close-menu" class="icon-button" aria-label="Contraer panel" aria-expanded="true" aria-controls="sheet-content"><Icon name="chevron" size={18} /></button>
+    </div>
+    <div id="sheet-content" class="sheet-content">
+      <section id="panel-explore" class="sheet-panel" role="tabpanel" aria-labelledby="tab-explore" tabindex="0">
+        <div class="quick-filters" role="group" aria-label="Filtros de reportes">
+          <label><input id="filter-nearby" class="sr-only" type="checkbox" /><span><Icon name="gps" size={16} />A 2.5 km de mí</span></label>
+          <label><input id="filter-mine" class="sr-only" type="checkbox" /><span><Icon name="user" size={16} />Mis reportes</span></label>
+        </div>
+        <div class="results-heading"><h2>Objetos en el mapa <span id="stat-reportes">—</span></h2><button id="btn-clear-filters">Limpiar filtros</button></div>
+        <p id="reports-feedback" class="reports-feedback" role="status">Cargando reportes…</p>
+        <div id="reports-list-container" class="reports-scroll custom-scrollbar"><div id="reports-list" class="reports-list" aria-label="Reportes encontrados" aria-busy="true"><p class="list-message">Cargando reportes…</p></div></div>
+        <div class="safe-summary"><Icon name="shield" size={18} /><span><strong id="stat-seguros">—</strong> puntos seguros en el mapa</span><span class="safe-dot"></span></div>
+      </section>
+      <section id="panel-you" class="sheet-panel profile-panel" role="tabpanel" aria-labelledby="tab-you" tabindex="0" hidden>
+        <div class="profile-identity"><div class="profile-avatar"><span id="profile-initials">Tú</span><img id="profile-photo" alt="" hidden referrerpolicy="no-referrer" /></div><h2 id="profile-name">Tu perfil</h2><p id="profile-email"></p></div>
+        <button id="btn-my-reports" class="profile-row"><Icon name="box" /><span>Mis reportes</span><span id="profile-report-count" class="profile-count">—</span><Icon name="arrow" size={17} /></button>
+        <button id="btn-profile-alerts" class="profile-row"><Icon name="bell" /><span>Mis alertas cercanas</span><Icon name="arrow" size={17} /></button>
+        <button id="btn-logout" class="profile-row logout-row"><Icon name="logout" /><span>Cerrar sesión</span></button>
+      </section>
+      <section id="panel-help" class="sheet-panel help-panel" role="tabpanel" aria-labelledby="tab-help" tabindex="0" hidden>
+        <ol class="help-steps">
+          <li><span>01</span><div><h3>Buscar objetos</h3><p>Busca un objeto o filtra por categoría. Activa tu ubicación para ver qué hay cerca.</p></div></li>
+          <li><span>02</span><div><h3>Crear un reporte</h3><p>Pulsa Reportar objeto, elige un punto en el mapa y completa los detalles.</p></div></li>
+          <li><span>03</span><div><h3>Contactar</h3><p>Abre un reporte para comentar o contactar. Acuerden la entrega en un punto seguro.</p></div></li>
+        </ol>
+        <button id="btn-help-report" class="help-report">Reportar objeto<Icon name="arrow" size={18} /></button>
+      </section>
+    </div>
+    <nav class="sheet-tabs" role="tablist" aria-label="Navegación principal">
+      <button id="tab-explore" data-tab="explore" role="tab" aria-selected="true" aria-controls="panel-explore" tabindex="0"><Icon name="compass" size={21} /><span>Explorar</span></button>
+      <button id="tab-you" data-tab="you" role="tab" aria-selected="false" aria-controls="panel-you" tabindex="-1"><Icon name="user" size={21} /><span>Tú</span></button>
+      <button id="tab-help" data-tab="help" role="tab" aria-selected="false" aria-controls="panel-help" tabindex="-1"><Icon name="help" size={21} /><span>¿Cómo funciona?</span></button>
+    </nav>
+  </aside>
+  <div class="map-controls" aria-label="Controles del mapa">
+    <div class="zoom-controls"><button id="btn-zoom-in" class="icon-button" aria-label="Acercar mapa" title="Acercar"><Icon name="plus" /></button><button id="btn-zoom-out" class="icon-button" aria-label="Alejar mapa" title="Alejar"><Icon name="minus" /></button></div>
+    <button id="btn-gps" class="icon-button" aria-label="Ubicarme en el mapa" title="Ubicarme"><Icon name="gps" size={22} /></button>
+    <button id="btn-refresh" class="icon-button" aria-label="Actualizar reportes" title="Actualizar reportes"><Icon name="refresh" size={21} /></button>
+  </div>
+  <button id="btn-add-report" class="report-action" aria-pressed="false"><Icon name="plus" size={23} /><span id="report-action-label">Reportar objeto</span></button>
+  <div class="map-meta"><div class="map-legend" aria-label="Leyenda del mapa"><span><i class="legend-own"></i>Tus reportes</span><span><i class="legend-other"></i>Otros reportes</span><span><i class="legend-safe"></i>Punto seguro</span></div><div id="status-indicator" class="connection-status" role="status"><span class="status-dot"></span>Conectando…</div></div>
+  <div id="notifications-backdrop" class="drawer-backdrop" hidden></div>
+  <aside id="notifications-menu" class="notifications-drawer" role="dialog" aria-modal="true" aria-labelledby="notifications-title" hidden inert>
+    <div class="drawer-heading"><span class="drawer-icon"><Icon name="bell" size={22} /></span><div><h2 id="notifications-title">Alertas cercanas</h2><p>En un radio de 2.5 km de tu ubicación</p></div><button id="btn-close-notifications" class="icon-button" aria-label="Cerrar alertas"><Icon name="close" /></button></div>
+    <div class="drawer-note"><Icon name="gps" size={18} /><p>Activa tu ubicación para descubrir los reportes de tu zona.</p></div>
+    <div id="notifications-list" class="notifications-list custom-scrollbar"><p class="list-message">Activa «Ubicarme» para ver reportes cercanos.</p></div>
+  </aside>
+</main>
+
+<!-- Creación de reportes: mantiene el contrato y la ubicación elegida en el mapa. -->
+<ReportModal />
+
+<!-- Consulta de reportes y comentarios. -->
+<ReportDetail />
+
+<div id="google-login-btn" class="hidden fixed top-4 right-4 z-[1000]"></div>
+<div
+  id="toast"
+  role="status"
+  aria-live="polite"
+  class="fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-sm text-white bg-gray-900 hidden z-[3000]"
+>
+</div>
+
+<script>
+  import "../scripts/app.js";
+</script>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; border: 2px solid #f8fafc; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+  .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f8fafc; }
+</style>
+<!-- TOAST GLOBAL -->
+
+</Layout>

@@ -1,0 +1,89 @@
+---
+// src/pages/index.astro
+import "../styles/global.css";
+---
+
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LostNet - Iniciar Sesión</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        /* Animación suave para la entrada */
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-[#F5F7FA] flex items-center justify-center min-h-screen font-sans p-4">
+
+    <div class="bg-white p-10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.05)] w-full max-w-[420px] text-center fade-in-up border border-white">
+        
+        <div class="flex justify-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+    <img src="/favicon.jpg"
+         alt="LostNet Logo"
+         class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md" />
+</div>
+
+        </div>
+
+        <h1 class="text-2xl font-bold text-slate-800 mb-3 tracking-tight">Bienvenido a LostNet</h1>
+        <p class="text-slate-400 text-sm mb-8 leading-relaxed px-4">
+            La plataforma inteligente para recuperar objetos perdidos.<br>
+            Inicia sesión para continuar.
+        </p>
+
+        <div class="flex justify-center mb-6 h-[44px]">
+            <div id="g_id_onload"
+                 data-client_id="131580325520-73jrf8i9o54nhitc64etc4ppk41qkin4.apps.googleusercontent.com"
+                 data-callback="handleCredentialResponse"
+                 data-auto_select="false"
+                 data-itp_support="true">
+            </div>
+            
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="pill"
+                 data-theme="outline"
+                 data-text="continue_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="300"> </div>
+        </div>
+
+        <button class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600/80 hover:text-blue-700 text-xs font-medium py-4 rounded-xl transition-colors duration-200">
+            Acceso unificado con la App Móvil
+        </button>
+    </div>
+
+    <script is:inline>
+        function decodeJwtResponse(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        window.handleCredentialResponse = (response) => {
+            const data = decodeJwtResponse(response.credential);
+            console.log("Usuario autenticado:", data);
+
+            localStorage.setItem("user_email", data.email);
+            localStorage.setItem("user_name", data.name);
+            localStorage.setItem("user_photo", data.picture);
+            localStorage.setItem("user_id", data.sub);
+
+            window.location.href = "/dashboard";
+        }
+    </script>
+</body>
+</html>
